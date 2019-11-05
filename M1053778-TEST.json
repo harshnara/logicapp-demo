@@ -1,0 +1,151 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "connections_gmail_1_name": {
+      "type": "String"
+    },
+    "workflows_WorkFlow_name": {
+      "type": "String"
+    },
+    "connections_office365_name": {
+      "type": "String"
+    },
+    "connections_skypeforbiz_name": {
+      "type": "String"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2016-06-01",
+      "name": "[parameters('connections_gmail_1_name')]",
+      "location": "centralus",
+      "properties": {
+        "displayName": "harshnaran@gmail.com",
+        "customParameterValues": {},
+        "api": {
+          "id": "/subscriptions/a46824dc-5f19-4c3c-8a54-39d8711ab184/providers/Microsoft.Web/locations/centralus/managedApis/gmail"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2016-06-01",
+      "name": "[parameters('connections_office365_name')]",
+      "location": "centralus",
+      "properties": {
+        "displayName": "M1053778@mindtree.com",
+        "customParameterValues": {},
+        "api": {
+          "id": "[concat('/subscriptions/a46824dc-5f19-4c3c-8a54-39d8711ab184/providers/Microsoft.Web/locations/centralus/managedApis/', parameters('connections_office365_name'))]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2016-06-01",
+      "name": "[parameters('connections_skypeforbiz_name')]",
+      "location": "centralus",
+      "properties": {
+        "displayName": "M1053778@mindtree.com",
+        "customParameterValues": {},
+        "api": {
+          "id": "[concat('/subscriptions/a46824dc-5f19-4c3c-8a54-39d8711ab184/providers/Microsoft.Web/locations/centralus/managedApis/', parameters('connections_skypeforbiz_name'))]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2017-07-01",
+      "name": "[parameters('workflows_WorkFlow_name')]",
+      "location": "centralus",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('connections_gmail_1_name'))]",
+        "[resourceId('Microsoft.Web/connections', parameters('connections_skypeforbiz_name'))]"
+      ],
+      "properties": {
+        "state": "Disabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "manual": {
+              "type": "Request",
+              "kind": "Http",
+              "inputs": {
+                "method": "GET",
+                "schema": {}
+              }
+            }
+          },
+          "actions": {
+            "Send_an_instant_message": {
+              "runAfter": {
+                "Send_email": [
+                  "Succeeded"
+                ]
+              },
+              "type": "ApiConnection",
+              "inputs": {
+                "body": {
+                  "Message": "Plain",
+                  "To": "M1053778@mindtree.com"
+                },
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['skypeforbiz']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "/v1/sendmessage"
+              }
+            },
+            "Send_email": {
+              "runAfter": {},
+              "type": "ApiConnection",
+              "inputs": {
+                "body": {
+                  "Body": "Triggered",
+                  "Subject": "Sample Subject",
+                  "To": "hi2swetha@gmail.com"
+                },
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['gmail_1']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "/Mail"
+              }
+            }
+          },
+          "outputs": {}
+        },
+        "parameters": {
+          "$connections": {
+            "value": {
+              "gmail_1": {
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_gmail_1_name'))]",
+                "connectionName": "gmail-1",
+                "id": "/subscriptions/a46824dc-5f19-4c3c-8a54-39d8711ab184/providers/Microsoft.Web/locations/centralus/managedApis/gmail"
+              },
+              "skypeforbiz": {
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_skypeforbiz_name'))]",
+                "connectionName": "skypeforbiz",
+                "id": "/subscriptions/a46824dc-5f19-4c3c-8a54-39d8711ab184/providers/Microsoft.Web/locations/centralus/managedApis/skypeforbiz"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
