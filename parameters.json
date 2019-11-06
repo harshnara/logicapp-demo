@@ -10,7 +10,7 @@
         },
         "workflows_SampleFlow_name": {
             "value": "WorkFlow"
-        }
+        },
 		"to_mail_address":{
 			"value": "harsnaran@gmail.com"
 		}
