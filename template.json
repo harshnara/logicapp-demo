@@ -1,115 +1,114 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "connections_gmail_name": {
-            "defaultValue": "gmail",
-            "type": "String"
-        },
-        "connections_office365_name": {
-            "defaultValue": "office365",
-            "type": "String"
-        },
-        "workflows_SampleFlow_name": {
-            "defaultValue": "SampleFlow",
-            "type": "String"
-        }
-		"to_mail_address":{
-			"type":"String"
-		
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"connections_gmail_name": {
+			"defaultValue": "gmail",
+			"type": "String"
+		},
+		"connections_office365_name": {
+			"defaultValue": "office365",
+			"type": "String"
+		},
+		"workflows_SampleFlow_name": {
+			"defaultValue": "SampleFlow",
+			"type": "String"
+		},
+		"to_mail_address": {
+			"type": "String"
+
 		}
-    },
-    "variables": {},
-    "resources": [
-        {
-            "type": "Microsoft.Web/connections",
-            "apiVersion": "2016-06-01",
-            "name": "[parameters('connections_gmail_name')]",
-            "location": "centralus",
-            "properties": {
-                "displayName": "[concat('harshnaran@', parameters('connections_gmail_name'), '.com')]",
-                "customParameterValues": {},
-                "api": {
-                    "id": "[concat('/subscriptions/a46824dc-5f19-4c3c-8a54-39d8711ab184/providers/Microsoft.Web/locations/centralus/managedApis/', parameters('connections_gmail_name'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Web/connections",
-            "apiVersion": "2016-06-01",
-            "name": "[parameters('connections_office365_name')]",
-            "location": "centralus",
-            "properties": {
-                "displayName": "M1053778@mindtree.com",
-                "customParameterValues": {},
-                "api": {
-                    "id": "[concat('/subscriptions/a46824dc-5f19-4c3c-8a54-39d8711ab184/providers/Microsoft.Web/locations/centralus/managedApis/', parameters('connections_office365_name'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Logic/workflows",
-            "apiVersion": "2017-07-01",
-            "name": "[parameters('workflows_SampleFlow_name')]",
-            "location": "centralus",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/connections', parameters('connections_gmail_name'))]"
-            ],
-            "properties": {
-                "state": "Disabled",
-                "definition": {
-                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
-                    "contentVersion": "1.0.0.0",
-                    "parameters": {
-                        "$connections": {
-                            "defaultValue": {},
-                            "type": "Object"
-                        }
-                    },
-                    "triggers": {
-                        "manual": {
-                            "type": "Request",
-                            "kind": "Http",
-                            "inputs": {
-                                "method": "GET",
-                                "schema": {}
-                            }
-                        }
-                    },
-                    "actions": {
-                        "Send_email": {
-                            "runAfter": {},
-                            "type": "ApiConnection",
-                            "inputs": {
-                                "body": {
-                                    "Body": "Triggered",
-                                    "Subject": "Sample Subject",
-                                    "To": "[parameters('to_mail_address')]"
-                                },
-                                "host": {
-                                    "connection": {
-                                        "name": "@parameters('$connections')['gmail']['connectionId']"
-                                    }
-                                },
-                                "method": "post",
-                                "path": "/Mail"
-                            }
-                        }
-                    },
-                    "outputs": {}
-                },
-                "parameters": {
-                    "$connections": {
-                        "value": {
-                            "gmail": {
-                                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_gmail_name'))]",
-                                "connectionName": "gmail",
-                                "id": "/subscriptions/a46824dc-5f19-4c3c-8a54-39d8711ab184/providers/Microsoft.Web/locations/centralus/managedApis/gmail"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    ]
+	},
+	"variables": {},
+	"resources": [{
+			"type": "Microsoft.Web/connections",
+			"apiVersion": "2016-06-01",
+			"name": "[parameters('connections_gmail_name')]",
+			"location": "centralus",
+			"properties": {
+				"displayName": "[concat('harshnaran@', parameters('connections_gmail_name'), '.com')]",
+				"customParameterValues": {},
+				"api": {
+					"id": "[concat('/subscriptions/a46824dc-5f19-4c3c-8a54-39d8711ab184/providers/Microsoft.Web/locations/centralus/managedApis/', parameters('connections_gmail_name'))]"
+				}
+			}
+		},
+		{
+			"type": "Microsoft.Web/connections",
+			"apiVersion": "2016-06-01",
+			"name": "[parameters('connections_office365_name')]",
+			"location": "centralus",
+			"properties": {
+				"displayName": "M1053778@mindtree.com",
+				"customParameterValues": {},
+				"api": {
+					"id": "[concat('/subscriptions/a46824dc-5f19-4c3c-8a54-39d8711ab184/providers/Microsoft.Web/locations/centralus/managedApis/', parameters('connections_office365_name'))]"
+				}
+			}
+		},
+		{
+			"type": "Microsoft.Logic/workflows",
+			"apiVersion": "2017-07-01",
+			"name": "[parameters('workflows_SampleFlow_name')]",
+			"location": "centralus",
+			"dependsOn": [
+				"[resourceId('Microsoft.Web/connections', parameters('connections_gmail_name'))]"
+			],
+			"properties": {
+				"state": "Disabled",
+				"definition": {
+					"$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+					"contentVersion": "1.0.0.0",
+					"parameters": {
+						"$connections": {
+							"defaultValue": {},
+							"type": "Object"
+						}
+					},
+					"triggers": {
+						"manual": {
+							"type": "Request",
+							"kind": "Http",
+							"inputs": {
+								"method": "GET",
+								"schema": {}
+							}
+						}
+					},
+					"actions": {
+						"Send_email": {
+							"runAfter": {},
+							"type": "ApiConnection",
+							"inputs": {
+								"body": {
+									"Body": "Triggered",
+									"Subject": "Sample Subject",
+									"To": "[parameters('to_mail_address')]"
+								},
+								"host": {
+									"connection": {
+										"name": "@parameters('$connections')['gmail']['connectionId']"
+									}
+								},
+								"method": "post",
+								"path": "/Mail"
+							}
+						}
+					},
+					"outputs": {}
+				},
+				"parameters": {
+					"$connections": {
+						"value": {
+							"gmail": {
+								"connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_gmail_name'))]",
+								"connectionName": "gmail",
+								"id": "/subscriptions/a46824dc-5f19-4c3c-8a54-39d8711ab184/providers/Microsoft.Web/locations/centralus/managedApis/gmail"
+							}
+						}
+					}
+				}
+			}
+		}
+	]
 }
